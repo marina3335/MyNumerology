@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Марина Нумеролог</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@300;400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, #1c050a 0%, #3d0a14 100%);
+            color: #fce4ec;
+            font-family: 'Montserrat', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .main-card {
+            width: 90%; max-width: 450px;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(236, 178, 189, 0.2);
+            border-radius: 40px;
+            padding: 50px 35px;
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        }
+        .logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: #ecb2bd; margin-bottom: 30px; letter-spacing: 2px; font-style: italic; opacity: 0.8; }
+        h1 { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #f8bbd0; margin-bottom: 20px; line-height: 1.3; }
+        .intro-text { font-size: 0.95rem; line-height: 1.6; margin-bottom: 30px; color: rgba(252, 228, 236, 0.8); font-weight: 300; }
+        
+        input[type="date"] {
+            width: 100%; padding: 18px; border-radius: 20px; border: 1px solid rgba(236, 178, 189, 0.3);
+            background: rgba(0,0,0,0.2); color: #fff; margin-bottom: 25px; outline: none; text-align: center; font-size: 1rem;
+        }
+        .btn {
+            width: 100%; padding: 20px; border: none; border-radius: 20px;
+            background: linear-gradient(45deg, #d88d9a, #f8bbd0);
+            color: #3d0a14; font-weight: 700; cursor: pointer; transition: 0.4s;
+            text-transform: uppercase; letter-spacing: 1px; margin-bottom: 15px;
+        }
+        .btn-secondary { background: transparent; border: 1px solid rgba(236, 178, 189, 0.4); color: #ecb2bd; }
+        #result { display: none; animation: fadeIn 0.8s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .arcana-num { font-family: 'Playfair Display', serif; font-size: 5.5rem; color: #ecb2bd; margin: 10px 0; }
+
+        #pdf-template { display: none; width: 600px; background: #fff; color: #3d0a14; font-family: 'Arial', sans-serif; }
+        .pdf-content-inner { padding: 80px 60px; border: 15px solid #fce4ec; position: relative; }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <div id="setup">
+        <div class="logo">Марина Нумеролог</div>
+        <h1>Твоё личное послание</h1>
+        <p class="intro-text">
+            Рада тебя видеть! Хочешь узнать, что ждет тебя и какая энергия ведет тебя в этом году? 
+            Позволь цифрам приоткрыть завесу тайны. <br><br>
+            Просто введи дату рождения ниже:
+        </p>
+        <input type="date" id="birthdate">
+        <button class="btn" onclick="calculate()">Раскрыть тайну</button>
+    </div>
+
+    <div id="result">
+        <p style="text-transform: uppercase; letter-spacing: 2px; font-size: 0.75rem; opacity: 0.7;">Твой ведущий Аркан года:</p>
+        <div class="arcana-num" id="display-num"></div>
+        <p id="short-title" style="font-family: 'Playfair Display'; font-size: 1.5rem; margin-bottom: 40px; color: #f8bbd0;"></p>
+        
+        <button class="btn" onclick="downloadPDF()">Скачать подробный гайд</button>
+        <button class="btn btn-secondary" onclick="goBack()">Вернуться назад</button>
+    </div>
+</div>
+
+<div id="pdf-template">
+    <div class="pdf-content-inner">
+        <p style="text-align: center; letter-spacing: 4px; color: #d88d9a; margin-bottom: 20px; font-weight: bold;">MARINA NUMEROLOG</p>
+        <h2 id="pdf-greeting" style="font-size: 26px; margin-bottom: 30px; font-style: italic; color: #3d0a14;">Приветствую!</h2>
+        <p style="font-size: 16px; line-height: 1.7; margin-bottom: 40px; color: #444;">
+            Я подготовила этот особенный расчет. Твоя дата рождения открыла энергию, которая будет твоим компасом в течение всего года. 
+            Воспринимай это как важное напутствие от Вселенной.
+        </p>
+        <div style="background: #fdf2f5; padding: 40px; text-align: center; margin-bottom: 40px; border-radius: 10px;">
+            <p style="margin: 0; font-size: 13px; letter-spacing: 2px; color: #d88d9a;">ТВОЯ ЭНЕРГИЯ ГОДА</p>
+            <h1 id="pdf-num" style="font-size: 85px; margin: 10px 0; color: #3d0a14; font-family: 'Georgia', serif;"></h1>
+            <h3 id="pdf-title" style="letter-spacing: 1px; color: #d88d9a; font-size: 18px;"></h3>
+        </div>
+        <div id="pdf-full-text" style="font-size: 15px; line-height: 1.9; text-align: justify; color: #333;"></div>
+        <div style="margin-top: 60px; text-align: center; border-top: 1px solid #fce4ec; padding-top: 30px;">
+            <p style="font-style: italic; color: #d88d9a; font-size: 16px;">С любовью, Марина Нумеролог</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let globalArcana = 0;
+    const descriptions = {
+        1: { title: "Маг", short: "Энергия Творения", full: "Этот год сделает тебя настоящим творцом реальности. Появится сила реализовывать любые идеи. Время проявляться, заявлять о себе и начинать новые проекты. Все инструменты уже в твоих руках!" },
+        2: { title: "Жрица", short: "Энергия Интуиции", full: "Год глубокой тишины и внутреннего знания. Стоит больше доверять своим предчувствиям. Это время изучения психологии и понимания тайн души. Слушай шепот интуиции." },
+        3: { title: "Императрица", short: "Энергия Изобилия", full: "Год истинного процветания. Ждет расцвет красоты, комфорта и творчества. Прекрасное время для созидания, обустройства жизни или запуска новых проектов. Ты в центре этого мира." },
+        4: { title: "Император", short: "Энергия Структуры", full: "Год реализации амбиций и наведения порядка. Предстоит взять ответственность в свои руки и выстроить четкую стратегию успеха. Время карьерного роста и укрепления авторитета." },
+        5: { title: "Иерофант", short: "Энергия Мудрости", full: "Год обучения и передачи знаний. Возможно, найдется важный наставник или ты сам станешь примером для других. Важно соблюдать правила и искать глубокие смыслы в происходящем." },
+        6: { title: "Влюбленные", short: "Энергия Выбора", full: "Этот год посвящен партнерству и важным решениям. Главный урок — научиться делать выбор сердцем. Окружай себя только тем, что вызывает искренний отклик и радость." },
+        7: { title: "Колесница", short: "Энергия Движения", full: "Год стремительных перемен и поездок. Если есть цель — она будет достигнута. Главное — держать штурвал крепко и не бояться скорости. Успех зависит от решительности." },
+        8: { title: "Справедливость", short: "Энергия Баланса", full: "Год причинно-следственных связей. Всё, что было посеяно раньше, даст свои плоды. Важно сохранять честность перед собой. Время навести порядок в делах и документах." },
+        9: { title: "Отшельник", short: "Энергия Глубины", full: "Время замедлиться и заглянуть внутрь себя. Этот год принесет мудрость через самопознание. Не бойся тишины — в ней скрыты самые ценные ответы и истинная сила." },
+        10: { title: "Колесо Фортуны", short: "Энергия Удачи", full: "Год цикличных перемен и счастливых случайностей. Поток несет в нужном направлении, просто доверься судьбе. Главное — быть легким на подъем и ловить знаки Вселенной." },
+        11: { title: "Сила", short: "Энергия Харизмы", full: "Время проявить внутреннюю мощь. Харизма и витальность будут на пике. Направляй эту энергию в созидание и страсть. Ты способен преодолеть любые препятствия." },
+        12: { title: "Повешенный", short: "Энергия Переосмысления", full: "Год иного взгляда на привычные вещи. Возможно, ритм жизни замедлится, чтобы открылись новые пути. Это время служения, помощи другим и глубокой трансформации." },
+        13: { title: "Смерть", short: "Энергия Перерождения", full: "Это год освобождения. Всё старое и отжившее покинет жизнь, чтобы освободить место для нового. Перемены будут к лучшему, даже если сейчас это не очевидно. Доверься процессу." },
+        14: { title: "Умеренность", short: "Энергия Гармонии", full: "Время исцеления души и тела. В этом году важно найти баланс во всем. Спокойствие, терпение и мягкость станут главными помощниками на пути к счастью." },
+        15: { title: "Дьявол", short: "Энергия Магнетизма", full: "Яркий год проверки на прочность. Ждут большие возможности, финансы и земные удовольствия. Важно наслаждаться благами мира разумно. Твой личный магнетизм огромен." },
+        16: { title: "Башня", short: "Энергия Прорыва", full: "Год разрушения иллюзий. Если что-то уходит — значит, фундамент был хрупким. Время очищения пространства для чего-то по-настоящему крепкого. Будь смелее в переменах." },
+        17: { title: "Звезда", short: "Энергия Мечты", full: "Год надежды и творческого вдохновения. Таланты могут получить признание. Верь в свою путеводную звезду и ставь смелые цели. Вселенная дает зеленый свет для реализации мечты." },
+        18: { title: "Луна", short: "Энергия Магии", full: "Мистический год работы с подсознанием. Сны могут стать пророческими. Важно доверять интуиции и не верить иллюзиям. Время раскрыть свои скрытые способности." },
+        19: { title: "Солнце", short: "Энергия Счастья", full: "Самый светлый год! Успех, радость и процветание во всех сферах. Ты будешь светить для окружающих. Прекрасное время для реализации масштабных планов и крупных покупок." },
+        20: { title: "Суд", short: "Энергия Рода", full: "Год пробуждения и связи с корнями. Род дает колоссальную поддержку. Время исцеления семейных сценариев и получения важного опыта. Ты выходишь на абсолютно новый жизненный уровень." },
+        21: { title: "Мир", short: "Энергия Расширения", full: "Год завершения важных циклов и расширения границ. Масштабные поездки, новые горизонты и ощущение гармонии со всем миром. Твои возможности сейчас практически безграничны." },
+        22: { title: "Шут", short: "Энергия Свободы", full: "Начни жизнь с чистого листа! Год обнуления, легкости и новых приключений. Не бойся нового — именно в открытости миру сейчас скрыта твоя сила. Доверься пути." }
+    };
+
+    function calculate() {
+        const val = document.getElementById('birthdate').value;
+        if (!val) return;
+        const date = new Date(val);
+        let sum = date.getDate() + (date.getMonth() + 1) + (2+0+2+6);
+        while (sum > 22) sum -= 22;
+        globalArcana = sum;
+
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('display-num').innerText = globalArcana;
+        
+        const info = descriptions[globalArcana];
+        document.getElementById('short-title').innerText = info.short;
+    }
+
+    function goBack() {
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('setup').style.display = 'block';
+    }
+
+    function downloadPDF() {
+        const info = descriptions[globalArcana];
+        document.getElementById('pdf-num').innerText = globalArcana;
+        document.getElementById('pdf-title').innerText = info.title;
+        document.getElementById('pdf-full-text').innerText = info.full;
+        
+        const element = document.getElementById('pdf-template');
+        element.style.display = 'block';
+        
+        const opt = {
+            margin: 0,
+            filename: `Guide_Arcan_${globalArcana}.pdf`,
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 3 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.style.display = 'none';
+        });
+    }
+</script>
+</body>
+</html>
